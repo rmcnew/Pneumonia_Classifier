@@ -6,88 +6,83 @@ import pathlib
 import tempfile
 import tensorflow as tf
 import numpy as np
-import matplotlib.pyplot as plt
-import IPython.display as display
-from PIL import Image
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 
 # enable tensorflow AUTOTUNE
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 BATCH_SIZE = 25
-CLASS_NAMES = np.array(['NORMAL', 'PNEUMONIA'])
-IMAGE_WIDTH = 1000
-IMAGE_HEIGHT = 1000
-SHUFFLE_SIZE = 100
+IMAGE_WIDTH = 250 
+IMAGE_HEIGHT = 250 
+SHUFFLE_SIZE = 25
 
 # dataset paths
 dataset = pathlib.Path("./dataset")
 test = dataset.joinpath("test")
+test_count = len(list(test.glob('**/*.jpeg')))
 train = dataset.joinpath("train")
+train_count = len(list(train.glob('**/*.jpeg')))
 validate = dataset.joinpath("validate")
+validate_count = len(list(validate.glob('**/*.jpeg')))
 
-test_files = tf.data.Dataset.list_files(str(test/'*/*.jpeg'))
-train_files = tf.data.Dataset.list_files(str(train/'*/*.jpeg'))
-validate_files = tf.data.Dataset.list_files(str(validate/'*/*.jpeg'))
+def create_train_image_generator():
+    train_image_generator = ImageDataGenerator(rescale=1./255)
+    train_data_gen = train_image_generator.flow_from_directory(
+            batch_size=BATCH_SIZE, 
+            directory=str(train), 
+            shuffle=True, 
+            target_size=(IMAGE_HEIGHT, IMAGE_WIDTH), 
+            class_mode='binary')
+    return train_data_gen
 
-# temp file for dataset caching
-def create_cache():
-    temp_handle, temp_path = tempfile.mkstemp()
-    return temp_path
+def create_test_image_generator():
+    test_image_generator = ImageDataGenerator(rescale=1./255)
+    test_data_gen = test_image_generator.flow_from_directory(
+            batch_size=BATCH_SIZE, 
+            directory=str(test), 
+            target_size=(IMAGE_HEIGHT, IMAGE_WIDTH), 
+            class_mode='binary')
+    return test_data_gen
 
-def clean_cache(temp_path):
-    tPath = pathlib.Path(temp_path)
-    tPath.unlink(missing_ok=True)
-
-# dataset loading and processing
-def extract_label(path):
-    parts = tf.strings.split(path, '/')
-    return parts[-2]
-
-def load_image_and_label(file_path):
-    label = extract_label(file_path)
-    image = tf.io.read_file(file_path)
-    image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.image.convert_image_dtype(image, tf.float32)
-    image = tf.image.resize(image, [IMAGE_WIDTH, IMAGE_HEIGHT])
-    return image, label
-
-def load_dataset(dataset_files):
-    labeled_dataset = dataset_files.map(load_image_and_label, num_parallel_calls=AUTOTUNE)
-    return labeled_dataset
-
-def load_train_dataset():
-    return load_dataset(train_files)
-
-def load_test_dataset():
-    return load_dataset(test_files)
-
-def load_validate_dataset():
-    return load_dataset(validate_files)
-
-def check_dataset(labeled_dataset, num_to_check):
-    for image, label in labeled_dataset.take(num_to_check):
-        print("Image shape: ", image.numpy().shape)
-        print("Label: ", label.numpy())
-
-# prepare dataset into batches and cache proprocessed data
-def prepare_dataset(labeled_dataset):
-    temp_path = create_cache() # need to save temp file path and clean up after use
-    labeled_dataset = labeled_dataset.cache(temp_path)
-    labeled_dataset = labeled_dataset.shuffle(buffer_size=SHUFFLE_SIZE)
-    labeled_dataset = labeled_dataset.repeat()
-    labeled_dataset = labeled_dataset.batch(BATCH_SIZE)
-    labeled_dataset = labeled_dataset.prefetch(buffer_size=AUTOTUNE)
-    return labeled_dataset, temp_path
-
-def prepare_train_dataset():
-    return prepare_dataset(load_train_dataset())
-
-def prepare_test_dataset():
-    return prepare_dataset(load_test_dataset())
-
-def prepare_validate_dataset():
-    return prepare_dataset(load_validate_dataet())
+def create_validate_image_generator():
+    validate_image_generator = ImageDataGenerator(rescale=1./255)
+    validate_data_gen = validate_image_generator.flow_from_directory(
+            batch_size=BATCH_SIZE, 
+            directory=str(validate), 
+            target_size=(IMAGE_HEIGHT, IMAGE_WIDTH), 
+            class_mode='binary')
+    return validate_data_gen
 
 
+def create_model():
+    model = Sequential([
+        Conv2D(16, 4, padding='same', activation='relu', input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH ,3)),
+        MaxPooling2D(),
+        Conv2D(32, 4, padding='same', activation='relu'),
+        MaxPooling2D(),
+        Conv2D(64, 4, padding='same', activation='relu'),
+        MaxPooling2D(),
+        Flatten(),
+        Dense(512, activation='relu'),
+        Dense(1, activation='softmax')
+    ])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']) 
+    return model
+
+def train_model():
+    train_data_gen = create_train_image_generator()
+    test_data_gen = create_test_image_generator()
+    model = create_model()
+    history = model.fit_generator(
+        train_data_gen,
+        steps_per_epoch=train_count // BATCH_SIZE,
+        epochs=30,
+        validation_data=test_data_gen,
+        validation_steps=test_count // BATCH_SIZE
+    ) 
+    model.save("pneumonia_classifier_model")
 
 
