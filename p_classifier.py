@@ -31,7 +31,7 @@ validate = dataset.joinpath("validate")
 validate_count = len(list(validate.glob('**/*.jpeg')))
 
 def create_train_image_generator():
-    train_image_generator = ImageDataGenerator(rescale=1./255)
+    train_image_generator = ImageDataGenerator(rescale=1./255, zoom_range=0.5)
     train_data_gen = train_image_generator.flow_from_directory(
             batch_size=BATCH_SIZE, 
             directory=str(train), 
@@ -62,10 +62,12 @@ def create_model():
     model = Sequential([
         Conv2D(32, 4, padding='same', activation='relu', activity_regularizer='l2', input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH ,3)),
         MaxPooling2D(),
+        Dropout(0.2),        
         Conv2D(64, 4, padding='same', activation='relu', activity_regularizer='l2'),
         MaxPooling2D(),
         Conv2D(128, 4, padding='same', activation='relu', activity_regularizer='l2'),
         MaxPooling2D(),
+        Dropout(0.2),
         Flatten(),
         Dense(512, activation='relu'),
         Dense(1, activation='softmax')
