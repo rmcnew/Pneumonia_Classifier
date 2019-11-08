@@ -11,7 +11,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-
+# enable accelerated linear algebra
+tf.config.optimizer.set_jit(True)
 # enable tensorflow AUTOTUNE
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
@@ -20,6 +21,7 @@ IMAGE_WIDTH = 250
 IMAGE_HEIGHT = 250 
 SHUFFLE_SIZE = 25
 EPOCHS = 30
+MODEL_PATH = "pneumonia_classifier_model"
 
 # dataset paths
 dataset = pathlib.Path("./dataset")
@@ -124,7 +126,27 @@ def train_model():
         validation_data=test_data_gen,
         validation_steps=test_count // BATCH_SIZE
     ) 
-    model.save("pneumonia_classifier_model")
+    model.save(MODEL_PATH)
     show_fit_metrics(history)
 
-train_model()
+def load_model(path):
+    model = tf.keras.models.load_model(path, custom_objects=None, compile=True)
+    return model
+
+def load_trained_model():
+    model = tf.keras.models.load_model(MODEL_PATH, custom_objects=None, compile=True)
+    return model
+
+def train_model_more():
+    model = load_trained_model()
+    history = model.fit_generator(
+        train_data_gen,
+        steps_per_epoch=train_count // BATCH_SIZE,
+        epochs=EPOCHS,
+        validation_data=test_data_gen,
+        validation_steps=test_count // BATCH_SIZE
+    ) 
+    model.save(MODEL_PATH)
+    show_fit_metrics(history)
+
+
