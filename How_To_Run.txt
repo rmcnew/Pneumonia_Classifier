@@ -1,0 +1,70 @@
+Pneumonia_Classifier was developed using Python 3.5.3 on Linux.
+
+It should be able to run under on other platforms that support Python 3, but it has not been tested exhaustively.
+
+These instructions assume that you have little to no Python background, but should enable you to get LFSDS running.
+
+0.  Download or 'git clone' Pneumonia_Classifier from GitHub.
+
+Go to 'https://github.com/rmcnew/Pneumonia_Classifier' and click the "Clone or Download" button and then click download Zip.  Unzip the resulting file.
+
+OR
+
+If you have git installed, run 'git clone https://github.com/rmcnew/Pneumonia_Classifier.git'
+
+1.  Install Python 3 on your platform.
+
+If you are using Linux or macOS, there's a good chance that you might have Python already installed.  Open a terminal
+and try running "python3 --version".  If you are on another platform, point your web browser to https://www.python.org,
+download the latest release for your platform and follow the installation instructions for your platform.
+
+2.  Install virtualenv.
+
+virtualenv is a localized Python package management system that allows Python packages to be installed locally for
+Python projects.    Follow the virtualenv installation instructions at
+https://packaging.python.org/guides/installing-using-pip-and-virtualenv/
+
+3.  Create a virtualenv environment
+
+In the Pneumonia_Classifier directory from step 0, run the following command:
+
+python3 -m venv .venv
+
+This will create an empty virtualenv environment in the ".venv" directory.  This allows the Pneumonia_Classifier Python requirements to be installed locally.
+
+4.  Activate the virtualenv environment
+
+In the Pneumonia_Classifier directory, run the following command:
+
+source .venv/bin/activate
+
+This should prepend "(.venv)" to your shell prompt, letting you know that you are in the virtualenv.
+
+5.  Install Python requirements
+
+While inside the virtualenv environment and in the Pneumonia_Classifier directory, run the following command:
+
+pip install -r requirements.txt
+
+This will install the Python packages needed to run Pneumonia_Classifer in the virtualenv.
+
+6.  Run Pneumonia_Classifer scripts (note that you will need a machine with 16 GB RAM or more for the scripts to run in a reasonable amount of time).
+
+python pneumonia_classifier.py   
+
+will run the current main function of pneumonia_classifier.py.  By default this will run the pneumonia_classifier_model.m5 against the Validate dataset subset.  You can edit the last few lines of pneumonia_classifier.py to change what action is performed.  This includes:  1) Training the model from scratch, 2) Training the current model more, 3) Running the pneumonia_classifier_model.m5 against the Test dataset subset, and 4) Running the pneumonia_classifier_model.m5 against the Validate dataset subset.
+
+python predict_xray.py XRAY_IMAGE_FILE
+
+where XRAY_IMAGE_FILE is an arbitrary chest X-ray image file.  This will run the pneumonia_classifier_model.m5 against the XRAY_IMAGE_FILE that you provide.  You can use X-ray images from the Validate dataset subset that are found in the dataset/validate directories.  For example:
+
+python predict_xray.py ./dataset/validate/NORMAL/NORMAL2-IM-1431-0001.jpeg
+
+OR
+
+python predict_xray.py ./dataset/validate/PNEUMONIA/person1949_bacteria_4880.jpeg
+
+
+Images that are not part of the dataset should also work.  Some sample chest X-ray images are in the other_xrays directory.
+
+
