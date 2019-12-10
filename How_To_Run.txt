@@ -2,7 +2,7 @@ Pneumonia_Classifier was developed using Python 3.5.3 on Linux.
 
 It should be able to run under on other platforms that support Python 3, but it has not been tested exhaustively.
 
-These instructions assume that you have little to no Python background, but should enable you to get LFSDS running.
+These instructions assume that you have little to no Python background, but should enable you to get the Pneumonia_Classifier running.
 
 0.  Download or 'git clone' Pneumonia_Classifier from GitHub.
 
