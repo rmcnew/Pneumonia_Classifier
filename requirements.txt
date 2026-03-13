@@ -23,7 +23,7 @@ Keras-Applications==1.0.8
 Keras-Preprocessing==1.1.0
 keras-vis==0.4.1
 kiwisolver==1.1.0
-Markdown==3.1.1
+Markdown==3.8.1
 matplotlib==3.0.3
 networkx==2.4
 numpy==1.22.0
