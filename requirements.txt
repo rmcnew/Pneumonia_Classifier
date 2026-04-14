@@ -9,7 +9,7 @@ decorator==4.4.1
 filelock==3.20.3
 future==0.18.3
 gast==0.2.2
-gdown==3.8.3
+gdown==5.2.2
 google-auth==1.7.2
 google-auth-oauthlib==0.4.1
 google-pasta==0.1.8
